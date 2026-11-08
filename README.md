@@ -53,17 +53,17 @@ Les unités U1 et U2 nécessitent deux périodes consécutives de maintenance. L
 
 On définit :
 
-- \(C_i\) : puissance de l'unité \(i\).
-- \(D_j\) : demande électrique de la période \(j\).
-- \(x_{ij}\) : variable binaire qui vaut 1 si l'unité \(i\) est en maintenance pendant la période \(j\), et 0 sinon.
-- \(R_j\) : réserve de puissance pendant la période \(j\).
+- \(Ci\) : puissance de l'unité \(i\).
+- \(Dj\) : demande électrique de la période \(j\).
+- \(x{ij}\) : variable binaire qui vaut 1 si l'unité \(i\) est en maintenance pendant la période \(j\), et 0 sinon.
+- \(Rj\) : réserve de puissance pendant la période \(j\).
 
 ### 4.1. Puissance indisponible
 
 La puissance indisponible pendant une période est :
 
 \[
-M_j=\sum_{i=1}^{7} C_i x_{ij}
+Mj=\sum{i=1}^{7} Ci x{ij}
 \]
 
 ### 4.2. Calcul de la réserve
@@ -71,7 +71,7 @@ M_j=\sum_{i=1}^{7} C_i x_{ij}
 La réserve de puissance est calculée par :
 
 \[
-R_j=150-M_j-D_j
+Rj=150-Mj-Dj
 \]
 
 ### 4.3. Fonction objectif
@@ -79,7 +79,7 @@ R_j=150-M_j-D_j
 L'objectif est de maximiser la réserve minimale parmi les quatre périodes :
 
 \[
-\boxed{\text{Maximiser } F=\min(R_1,R_2,R_3,R_4)}
+\boxed{\text{Maximiser } F=\min(R1,R2,R3,R4)}
 \]
 
 ### 4.4. Contraintes
@@ -96,7 +96,7 @@ La fonction fitness permet d'évaluer la qualité d'un chromosome.
 \[
 Fitness=
 \begin{cases}
-\min(R_1,R_2,R_3,R_4), & \text{si toutes les réserves sont positives}\\
+\min(R1,R2,R3,R4), & \text{si toutes les réserves sont positives}\\
 0, & \text{sinon}
 \end{cases}
 \]
@@ -116,7 +116,7 @@ La sélection par loterie permet de choisir les individus qui participeront à l
 La probabilité de sélection d'un individu dépend de sa fitness :
 
 \[
-P_i=\frac{Fitness_i}{\sum Fitness}
+Pi=\frac{Fitnessi}{\sum Fitness}
 \]
 
 Un individu ayant une meilleure fitness possède une probabilité plus élevée d'être sélectionné.
