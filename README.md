@@ -1,110 +1,206 @@
-# TD n°2 : Algorithme évolutionnaires
-# Exercice 2 : Probleme de transport
+# Ordonnancement des maintenances des centrales électriques par algorithme génétique
 
-## Description
-Cet exercice consiste à résoudre un problème de transport en utilisant la méthode de recherche taboue en Python.
+## 1. Présentation du projet
 
-L'objectif est de minimiser le coût total du transport entre deux dépôts(D1,D2) et trois magasins(M1,M2,M3), tout en respectant les stocks disponibles(8 unités pour D1 et 9 unités pour D2) et les demandes des magasins(4,5,8).
+Ce projet consiste à appliquer un algorithme génétique pour planifier les opérations de maintenance de sept unités de production électrique sur quatre périodes.
 
-## Algorithme utilisé : Recherche taboue
-La recherche tabou est une métaheuristique d'optimisation à solution unique (ou basée sur une trajectoire). Le déroulement logique de cet algorithme s'articule autour des étapes clés suivantes :
-
-1. Initialiser une solution de départ.
-2. Générer des solutions voisines.
-3. Vérifier les contraintes du problème.
-4. Calculer le coût de chaque solution.
-5. Choisir le meilleur voisin autorisé.
-6. Mettre à jour la liste taboue et la meilleure solution.
-7. Répéter jusqu'à atteindre le nombre maximal d'itérations.
-
-## Résultat attendu
-<img width="413" height="84" alt="image" src="https://github.com/user-attachments/assets/ce7885d2-abae-490f-9fad-c709baef043c" />
-
-
-# Exercice 3 — Problème du voyageur de commerce (TSP)
-
-## 1. Description
-
-Ce projet consiste à résoudre le problème du voyageur de commerce en utilisant deux métaheuristiques :
-
-- La recherche taboue (*Tabu Search*).
-- Le recuit simulé (*Simulated Annealing*).
-
-L'objectif est de trouver un circuit qui passe par les huit villes, visite chaque ville une seule fois et revient à la ville de départ, tout en minimisant la distance totale parcourue.
+L'objectif est de trouver un planning qui maximise la réserve minimale de puissance tout en respectant les contraintes de maintenance de chaque unité.
 
 ## 2. Données du problème
 
-Le problème comporte huit villes numérotées de 1 à 8.
+### 2.1. Puissance et durée de maintenance
 
-Le circuit initial est :
+| Unité | Puissance (MW) | Durée de maintenance |
+|---|---:|---:|
+| U1 | 20 | 2 périodes consécutives |
+| U2 | 15 | 2 périodes consécutives |
+| U3 | 35 | 1 période |
+| U4 | 40 | 1 période |
+| U5 | 15 | 1 période |
+| U6 | 15 | 1 période |
+| U7 | 10 | 1 période |
+| **Total** | **150** | |
 
-`1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 1`
+### 2.2. Demande électrique
 
-Les distances entre les villes sont définies à partir de la matrice fournie dans l'énoncé. Les distances sont considérées comme symétriques. Lorsqu'une distance n'est pas indiquée, la liaison correspondante est considérée comme indisponible.
+| Période | Demande (MW) |
+|---|---:|
+| P1 | 80 |
+| P2 | 90 |
+| P3 | 65 |
+| P4 | 70 |
 
-La distance totale d'un circuit est calculée en additionnant les distances entre chaque paire de villes consécutives, y compris le retour à la ville de départ.
+## 3. Codage du chromosome
 
-## 3. Méthode 1 : Recherche taboue
+Un chromosome représente un planning de maintenance pour les sept unités.
 
-### Principe
+- Un chromosome contient 7 gènes.
+- Chaque gène contient 4 bits.
+- La longueur totale est de 28 bits.
+- Le bit 1 indique que l'unité est en maintenance.
+- Le bit 0 indique que l'unité n'est pas en maintenace.
 
-La recherche taboue est une métaheuristique qui explore le voisinage d'une solution afin de trouver un circuit de distance réduite.
+### Motifs de maintenance autorisés
 
-### Étapes de l'algorithme
+| Unités | Motifs autorisés |
+|---|---|
+| U1 et U2 | `1100`, `0110`, `0011` |
+| U3 à U7 | `1000`, `0100`, `0010`, `0001` |
 
-1. Initialiser le circuit avec l'ordre des villes donné dans l'énoncé.
-2. Calculer la distance totale du circuit initial.
-3. Générer des solutions voisines en échangeant deux villes.
-4. Écarter les circuits qui utilisent des liaisons indisponibles.
-5. Choisir le meilleur voisin autorisé, même s'il n'améliore pas immédiatement la solution courante.
-6. Enregistrer les solutions récemment visitées dans la liste taboue.
-7. Mettre à jour la meilleure solution lorsque la distance diminue.
-8. Répéter jusqu'à atteindre le nombre maximal d'itérations ou jusqu'à ce qu'aucun candidat ne soit disponible.
+Les unités U1 et U2 nécessitent deux périodes consécutives de maintenance. Les autres unités nécessitent une seule période.
 
-### Paramètres
+## 4. Formulation mathématique
 
-- Nombre maximal d'itérations : 500.
-- Taille maximale de la liste taboue : 10.
+On définit :
 
-## Résultat attendu
-<img width="591" height="53" alt="image" src="https://github.com/user-attachments/assets/02f33638-c64d-41fc-a4ba-ce6c85c276e8" />
+- \(C_i\) : puissance de l'unité \(i\).
+- \(D_j\) : demande électrique de la période \(j\).
+- \(x_{ij}\) : variable binaire qui vaut 1 si l'unité \(i\) est en maintenance pendant la période \(j\), et 0 sinon.
+- \(R_j\) : réserve de puissance pendant la période \(j\).
 
-## 4. Méthode 2 : Recuit simulé
+### 4.1. Puissance indisponible
 
-### Principe
+La puissance indisponible pendant une période est :
 
-Le recuit simulé est une métaheuristique inspirée du refroidissement progressif des matériaux. Il permet d'explorer différentes solutions et d'éviter de rester trop rapidement bloqué dans un optimum local.
+\[
+M_j=\sum_{i=1}^{7} C_i x_{ij}
+\]
 
-### Étapes de l'algorithme
+### 4.2. Calcul de la réserve
 
-1. Initialiser le circuit et calculer sa distance totale.
-2. Définir la température initiale `T0`.
-3. Générer un voisin en échangeant deux villes.
-4. Calculer la variation de distance :
- `Delta = distance_voisin - distance_actuelle`
-5. Si `Delta < 0`, accepter le voisin car il améliore la solution.
-6. Sinon, accepter éventuellement le voisin avec la probabilité :
- `P = exp(-Delta / T)`
-7. Diminuer progressivement la température :
-   `T = beta * T`
-8. Conserver la meilleure solution trouvée et arrêter lorsque le nombre maximal d'itérations est atteint ou que la température devient très faible.
+La réserve de puissance est calculée par :
 
-### Paramètres
+\[
+R_j=150-M_j-D_j
+\]
 
-- Température initiale : `T0 = 100`.
-- Coefficient de refroidissement : `beta = 0.95`.
-- Nombre maximal d'itérations : 1000.
-- Graine aléatoire : `42` pour rendre l'exécution reproductible.
+### 4.3. Fonction objectif
 
-## Résultat attendu
-<img width="595" height="47" alt="image" src="https://github.com/user-attachments/assets/1c574577-6cab-4b72-b69a-0d99f53a8142" />
+L'objectif est de maximiser la réserve minimale parmi les quatre périodes :
 
-## Technologies utilisées
+\[
+\boxed{\text{Maximiser } F=\min(R_1,R_2,R_3,R_4)}
+\]
 
-- Python 3
-- Thonny
-- Modules math et random pour l'exercice 3
+### 4.4. Contraintes
 
-## Conclusion
+- Respecter les motifs de maintenance autorisés.
+- Les unités U1 et U2 doivent avoir deux périodes consécutives de maintenance.
+- Les unités U3 à U7 doivent avoir une seule période de maintenance.
+- La réserve doit être strictement positive pendant chaque période.
 
-Ce travail permet de comparer deux métaheuristiques appliquées au problème du voyageur de commerce. La recherche taboue utilise une mémoire des solutions récentes pour limiter les cycles, tandis que le recuit simulé accepte parfois une solution moins bonne afin d'explorer davantage l'espace de recherche.
+## 5. Fonction d'évaluation (Fitness)
+
+La fonction fitness permet d'évaluer la qualité d'un chromosome.
+
+\[
+Fitness=
+\begin{cases}
+\min(R_1,R_2,R_3,R_4), & \text{si toutes les réserves sont positives}\\
+0, & \text{sinon}
+\end{cases}
+\]
+
+Une fitness élevée correspond à une meilleure solution.
+
+## 6. Méthodes de l'algorithme génétique
+
+### 6.1. Génération de la population initiale
+
+Une population initiale de 49 chromosomes est générée aléatoirement. Chaque gène est choisi parmi les motifs autorisés pour son unité.
+
+### 6.2. Sélection par loterie (roulette)
+
+La sélection par loterie permet de choisir les individus qui participeront à la reproduction.
+
+La probabilité de sélection d'un individu dépend de sa fitness :
+
+\[
+P_i=\frac{Fitness_i}{\sum Fitness}
+\]
+
+Un individu ayant une meilleure fitness possède une probabilité plus élevée d'être sélectionné.
+
+### 6.3. Croisement
+
+Le croisement est réalisé avec une probabilité \(Pc\).
+
+Un point de coupure est choisi entre deux gènes, sans couper un bloc de quatre bits.
+
+Les parties des deux parents sont échangées pour produire deux enfants.
+
+### 6.4. Mutation par inversion
+
+La mutation est réalisée avec une probabilité \(Pm\).
+
+Elle consiste à inverser l'ordre des quatre bits d'un gène.
+
+Exemple :
+
+- Avant : 1100
+- Après : 0011
+
+Cette opération conserve les motifs de maintenance autorisés.
+
+### 6.5. Élitisme
+
+Le meilleur individu de chaque génération est conservé dans la génération suivante afin de préserver la meilleure solution trouvée.
+
+## 7. Paramètres utilisés
+
+| Paramètre | Valeur |
+|---|---:|
+| Taille de la population | 49 |
+| Nombre de générations | 200 |
+| Probabilité de croisement (Pc) | Variable |
+| Probabilité de mutation (Pm) | Variable |
+| Méthode de sélection | Loterie |
+| Méthode de mutation | Inversion |
+
+## 8. Expérimentations et résultats
+
+Pour étudier l'influence des probabilités de croisement et de mutation, cinq configurations ont été testées.
+
+### 8.1. Résultats obtenus
+
+| Essai | Pc | Pm | P1 (MW) | P2 (MW) | P3 (MW) | P4 (MW) | Fitness (MW) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 0,8 | 0,1 | 30 | 25 | 30 | 25 | 25 |
+| 2 | 0,8 | 0,2 | 25 | 25 | 30 | 30 | 25 |
+| 3 | 0,7 | 0,1 | 30 | 25 | 25 | 30 | 25 |
+| 4 | 0,9 | 0,1 | 35 | 25 | 25 | 25 | 25 |
+| 5 | 0,7 | 0,2 | 30 | 30 | 25 | 25 | 25 |
+
+### 8.2. Analyse des résultats
+
+Les résultats montrent que :
+
+- Les cinq essais donnent une fitness de 25 MW.
+- Tous les chromosomes obtenus respectent les motifs de maintenance autorisés.
+- Toutes les réserves sont positives.
+- La quatrième configuration donne une réserve de 35 MW pendant la première période.
+- La réserve minimale reste égale à 25 MW dans les cinq essais.
+
+Les probabilités de croisement et de mutation influencent la répartition des maintenances entre les périodes et les chromosomes obtenus.
+
+## 9. Exécution du programme
+
+Le projet utilise Python 3 et la bibliothèque standard `random`. 
+
+Le programme affiche pour chaque configuration :
+
+- Les probabilités de croisement et de mutation.
+- Les sept gènes du meilleur chromosome.
+- Les réserves des quatre périodes.
+- La valeur de fitness.
+- La validité du chromosome.
+
+## 10. Conclusion
+
+Ce projet m'a permis d'appliquer un algorithme génétique à un problème d'ordonnancement des maintenances des centrales électriques.
+
+J'ai utilisé la sélection par loterie, le croisement entre les gènes et la mutation par inversion pour générer et améliorer les solutions.
+
+Les cinq expérimentations ont donné une fitness de 25 MW. Les solutions obtenues respectent les contraintes de maintenance et garantissent une réserve positive pendant les quatre périodes.
+
+Ce travail montre l'intérêt des algorithmes génétiques pour résoudre des problèmes d'optimisation combinatoire.
